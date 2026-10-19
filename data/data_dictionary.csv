@@ -1,0 +1,16 @@
+column,description
+id,Unique row identifier.
+prompt,"User question, instruction, or evaluation prompt."
+context,Grounding context used to verify whether the response is supported.
+response,Model-style answer to be classified or evaluated.
+label,Main target label: faithful or hallucinated.
+hallucination_type,"Specific hallucination class such as factual_error, date_error, unsupported_claim, contradiction, or none."
+domain,Knowledge domain of the example.
+task_type,NLP task type represented by the record.
+evidence_available,Whether supporting evidence/context is available.
+factuality_score,Synthetic score from 0 to 1 indicating response factuality.
+confidence_score,Synthetic confidence score from 0 to 1.
+difficulty,"Estimated task difficulty: easy, medium, or hard."
+language,Language of the record.
+source_type,Data origin marker. All records are synthetic.
+created_year,Year the dataset was created.
