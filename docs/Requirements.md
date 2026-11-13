@@ -17,6 +17,22 @@ The score is reported on the 39 unique test rows, using random_state 42. Duplica
 
 A later version must work from the question and the answer only, with no context given. That version is not the current system.
 
+## Research and evaluation questions
+How well can each method identify hallucinated and faithful answers?
+Compare the word-overlap rule, logistic regression, BERT, and RoBERTa using the same test examples. Report accuracy, precision, recall, F1 score, and a confusion matrix.
+
+Does providing the context improve detection?
+Compare models that receive the prompt, context, and response with models that receive only the prompt and response. Use the same data splits for both.
+
+Can the models handle questions and facts they have not seen during training?
+Keep related examples based on the same passage or fact in the same split. This tests whether the models can generalize to new material and reduces the risk of data leakage.
+
+Which types of hallucinations are hardest to detect?
+Examine errors involving changed names, numbers, dates, negation, and unsupported claims. Also check whether the models incorrectly flag faithful paraphrases.
+
+Which method offers the best balance between performance and complexity?
+Compare the simple baselines with BERT and RoBERTa on detection quality, training time, and computational requirements. A simpler model may be preferable if its performance is comparable on a reliable test set.
+
 ## Specification
 
 The current method is the word check. An answer is hallucinated when fewer than 60% of its words appear in the context. On the 39 test rows this scores 0.974 accuracy.
