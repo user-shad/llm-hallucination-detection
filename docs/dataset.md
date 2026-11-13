@@ -91,3 +91,21 @@ records. It must not be used as a model input.
 Related examples can use different prompt wording with the same context or
 underlying fact. Future evaluation splits should keep these related examples
 together to reduce the risk of data leakage.
+
+## Related Examples and Grouping
+
+The 192 unique prompt–context–response examples use 24 distinct contexts.
+Each context is associated with eight examples: four prompt variations,
+each paired with one faithful and one hallucinated response.
+
+Because the same context and responses appear under different prompts,
+grouping by prompt and context alone can allow closely related examples
+to appear in both training and test sets.
+
+For the next evaluation, examples will be grouped by context so that all
+examples using the same passage remain in the same split. Related contexts
+or examples from a common source should also be grouped together if they
+are identified.
+
+There are only 24 context groups, so evaluation results may vary
+considerably depending on which groups are selected for testing.
