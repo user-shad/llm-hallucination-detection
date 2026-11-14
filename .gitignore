@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Experiment artifacts
+outputs/
+checkpoints/
+models/
+runs/
+wandb/
+
+# Downloaded transformer caches
+.cache/
+huggingface/
+
+# Local environment
+.env
+.DS_Store
