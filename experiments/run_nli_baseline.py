@@ -62,8 +62,11 @@ def predict_all(model, tokenizer, frame, batch_size: int, max_length: int):
             probability_batches.append(torch.softmax(logits, dim=1).cpu().numpy())
 
     probabilities = np.concatenate(probability_batches, axis=0)
-    predicted_nli_labels = probabilities.argmax(axis=1)
-    predictions = np.where(predicted_nli_labels == entailment_index, 0, 1)
+    # The project is binary, while NLI has entailment, contradiction, and
+    # neutral labels. Faithful means entailment; the other two probabilities
+    # are combined as hallucinated. This is equivalent to a 0.5 entailment
+    # threshold and avoids treating a plurality as a binary majority.
+    predictions = np.where(probabilities[:, entailment_index] >= 0.5, 0, 1)
     elapsed = time.perf_counter() - start
     return predictions, probabilities[:, entailment_index], elapsed, entailment_index
 
@@ -129,7 +132,7 @@ def evaluate(args) -> None:
         "context_groups": int(frame["context"].nunique()),
         "entailment_label_index": entailment_index,
         "inference_seconds": elapsed,
-        "decision_rule": "entailment -> faithful; contradiction or neutral -> hallucinated",
+        "decision_rule": "entailment probability >= 0.5 -> faithful; otherwise hallucinated",
     }
     (args.output_dir / "run_config.json").write_text(
         json.dumps(config, indent=2), encoding="utf-8"

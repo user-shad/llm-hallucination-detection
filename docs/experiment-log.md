@@ -7,10 +7,11 @@ Record every completed, failed, or abandoned experiment. Do not delete an entry 
 | ID | Date | Model | Input | Evaluation | Status | Weighted F1 | Notes |
 | --- | --- | --- | --- | --- | --- | ---: | --- |
 | EXP-001 | 14 Nov 2026 | Classical baselines | context + response | 6-fold grouped CV | Complete | 0.885 best | Word overlap was strongest |
-| EXP-002 | TBD | BERT | context + response | 6-fold grouped CV | Planned | — | Pair classification |
-| EXP-003 | TBD | RoBERTa | context + response | 6-fold grouped CV | Planned | — | Pair classification |
-| EXP-004 | TBD | DeBERTa-v3 NLI | context + response | 6-fold grouped CV | Planned | — | Zero-shot, then fine-tuned |
-| EXP-005 | TBD | SciBERT | context + response | 6-fold grouped CV | Planned | — | Domain-specific comparison |
+| EXP-002 | 14 Nov 2026 | Pretrained DeBERTa-v3 NLI | context + response | 6-fold grouped reporting | Complete | 1.000 | No project-specific training |
+| EXP-003 | 14 Nov 2026 | BERT | context + response | 6-fold grouped CV | Complete | 0.739 | High fold variation |
+| EXP-004 | 14 Nov 2026 | RoBERTa | context + response | 6-fold grouped CV | Complete | 0.892 | Zero false alarms |
+| EXP-005 | TBD | DeBERTa-v3 | context + response | 6-fold grouped CV | Planned | — | Fine-tuned pair classifier |
+| EXP-006 | TBD | SciBERT | context + response | 6-fold grouped CV | Planned | — | Domain-specific comparison |
 
 ## EXP-001 — Classical baselines
 
@@ -33,6 +34,83 @@ Record every completed, failed, or abandoned experiment. Do not delete an entry 
 - **Interpretation:** lexical overlap is a strong synthetic-data baseline, but the large fold variation and substitution errors justify testing NLI pair encoders
 - **Limitations:** only 24 synthetic contexts; no claim of real-world performance
 - **Decision and next step:** run the pretrained NLI baseline, then BERT, RoBERTa, DeBERTa-v3, and SciBERT with the same folds
+
+## EXP-002 — Pretrained DeBERTa-v3 NLI
+
+- **Date:** 14 November 2026
+- **Research question:** Can a pretrained NLI model detect unsupported or contradictory responses without training on this project dataset?
+- **Hypothesis:** An NLI model will outperform word overlap because it compares the evidence and claim relationship.
+- **Unique examples:** 192
+- **Context groups:** 24
+- **Input condition:** context as premise and response as hypothesis
+- **Model/checkpoint:** `MoritzLaurer/DeBERTa-v3-base-mnli-fever-anli`
+- **Training:** none; pretrained zero-shot inference
+- **Fold definition:** predictions reported in the same six context groups used by other experiments
+- **Batch size:** 8
+- **Maximum length:** 256 tokens
+- **Inference time:** 1.379 seconds on the Colab run
+- **Decision rule:** entailment probability at least 0.5 means faithful; otherwise hallucinated
+- **Weighted F1, mean ± standard deviation:** 1.000 ± 0.000
+- **Macro F1, mean ± standard deviation:** 1.000 ± 0.000
+- **Accuracy:** 1.000
+- **Correct predictions:** 192 of 192
+- **Probability separation:** faithful entailment probabilities ranged from 0.680 to 0.998; hallucinated examples ranged from 0.00006 to 0.398
+- **Main errors:** none on this dataset
+- **Interpretation:** the pretrained NLI formulation fits the simple evidence-response relationships in this synthetic dataset much better than the lexical baselines
+- **Limitations:** a perfect result on 24 synthetic contexts is strong evidence that the benchmark is easy for this checkpoint, not evidence of perfect real-world hallucination detection
+- **Decision and next step:** run BERT and RoBERTa under grouped fine-tuning, then test generalization on a second dataset
+
+## EXP-003 — Fine-tuned BERT
+
+- **Date:** 14 November 2026
+- **Research question:** Can BERT learn evidence-response consistency from the small project dataset?
+- **Hypothesis:** Pair fine-tuning will improve on TF-IDF, but may be unstable because only 24 contexts are available.
+- **Unique examples:** 192
+- **Context groups:** 24
+- **Input condition:** context + response
+- **Model/checkpoint:** `bert-base-uncased`
+- **Fold definition:** six-fold GroupKFold by context, with grouped validation inside each training fold
+- **Train/validation/test per fold:** 128 / 32 / 32 examples
+- **Hyperparameters:** learning rate 2e-5, batch size 16, maximum 5 epochs, weight decay 0.01, maximum length 256, seed 42
+- **Total training time:** 335.403 seconds (about 5 minutes 35 seconds)
+- **Total inference time:** 0.724 seconds
+- **Weighted F1, mean ± standard deviation:** 0.739 ± 0.209
+- **Macro F1, mean ± standard deviation:** 0.739 ± 0.209
+- **Accuracy:** 0.771
+- **Hallucinated precision/recall/F1:** 0.792 / 0.583 / 0.665
+- **Faithful precision/recall/F1:** 0.719 / 0.958 / 0.814
+- **Aggregate confusion counts:** 92 faithful correct, 4 faithful false alarms, 56 hallucinations detected, 40 hallucinations missed
+- **Main errors:** factual errors (16), definition errors (8), irrelevant claims (8), contradictions (4), date errors (4), and four faithful examples
+- **Fold stability:** weighted F1 ranged from 0.333 to 0.873; fold 3 predicted all 16 hallucinations as faithful
+- **Interpretation:** BERT outperformed TF-IDF but underperformed word overlap and pretrained NLI; the small dataset does not support stable BERT fine-tuning across unseen contexts
+- **Limitations:** one seed and a small synthetic dataset; results may change with initialization and validation grouping
+- **Decision and next step:** run RoBERTa with the same protocol, then compare whether NLI pretraining is more useful than general language-model pretraining
+
+## EXP-004 — Fine-tuned RoBERTa
+
+- **Date:** 14 November 2026
+- **Research question:** Does RoBERTa generalize across unseen contexts better than BERT?
+- **Hypothesis:** RoBERTa will be more stable than BERT but may still be limited by the small number of context groups.
+- **Unique examples:** 192
+- **Context groups:** 24
+- **Input condition:** context + response
+- **Model/checkpoint:** `roberta-base`
+- **Fold definition:** six-fold GroupKFold by context, with grouped validation inside each training fold
+- **Train/validation/test per fold:** 128 / 32 / 32 examples
+- **Hyperparameters:** learning rate 2e-5, batch size 16, maximum 5 epochs, weight decay 0.01, maximum length 256, seed 42
+- **Total training time:** 336.796 seconds (about 5 minutes 37 seconds)
+- **Total inference time:** 0.883 seconds
+- **Weighted F1, mean ± standard deviation:** 0.892 ± 0.100
+- **Macro F1, mean ± standard deviation:** 0.892 ± 0.100
+- **Accuracy:** 0.896
+- **Hallucinated precision/recall/F1:** 1.000 / 0.792 / 0.873
+- **Faithful precision/recall/F1:** 0.844 / 1.000 / 0.911
+- **Aggregate confusion counts:** 96 faithful correct, 0 faithful false alarms, 76 hallucinations detected, 20 hallucinations missed
+- **Main errors:** date errors (8), factual errors (8), and contradictions (4)
+- **Fold stability:** weighted F1 ranged from 0.733 to 1.000; two folds scored 1.000
+- **Interpretation:** RoBERTa was substantially more stable than BERT and slightly exceeded word overlap in weighted F1, but pretrained NLI remained clearly strongest
+- **Limitations:** one seed, 24 synthetic contexts, and no external test dataset
+- **Decision and next step:** run fine-tuned DeBERTa-v3 and SciBERT, then evaluate the strongest approaches on a second dataset
 
 ## Entry template
 

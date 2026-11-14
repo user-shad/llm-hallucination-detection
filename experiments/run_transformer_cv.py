@@ -3,8 +3,11 @@
 from __future__ import annotations
 
 import argparse
+import inspect
 import json
+import shutil
 import sys
+import tempfile
 import time
 from pathlib import Path
 
@@ -104,6 +107,9 @@ def evaluate(args) -> None:
     tokenizer = AutoTokenizer.from_pretrained(checkpoint)
     collator = DataCollatorWithPadding(tokenizer=tokenizer)
     args.output_dir.mkdir(parents=True, exist_ok=True)
+    checkpoint_root = args.checkpoint_dir or (
+        Path(tempfile.gettempdir()) / "hallucination_checkpoints"
+    )
 
     fold_rows = []
     prediction_rows = []
@@ -135,15 +141,17 @@ def evaluate(args) -> None:
             id2label=ID_TO_LABEL,
             label2id=LABEL_TO_ID,
         )
-        fold_dir = args.output_dir / f"fold_{fold}"
-        training_args = TrainingArguments(
+        # Checkpoints are large and slow to write to mounted Google Drive.
+        # Keep them on fast local storage; only final CSV/JSON results go to
+        # args.output_dir.
+        fold_dir = checkpoint_root / args.model / f"fold_{fold}"
+        training_kwargs = dict(
             output_dir=str(fold_dir),
             learning_rate=args.learning_rate,
             per_device_train_batch_size=args.batch_size,
             per_device_eval_batch_size=args.batch_size,
             num_train_epochs=args.epochs,
             weight_decay=args.weight_decay,
-            evaluation_strategy="epoch",
             save_strategy="epoch",
             logging_strategy="epoch",
             load_best_model_at_end=True,
@@ -154,16 +162,28 @@ def evaluate(args) -> None:
             seed=args.seed,
             data_seed=args.seed,
         )
-        trainer = Trainer(
+        strategy_parameter = (
+            "eval_strategy"
+            if "eval_strategy" in inspect.signature(TrainingArguments.__init__).parameters
+            else "evaluation_strategy"
+        )
+        training_kwargs[strategy_parameter] = "epoch"
+        training_args = TrainingArguments(**training_kwargs)
+
+        trainer_kwargs = dict(
             model=model,
             args=training_args,
             train_dataset=train_data,
             eval_dataset=validation_data,
-            tokenizer=tokenizer,
             data_collator=collator,
             compute_metrics=trainer_metrics,
             callbacks=[EarlyStoppingCallback(early_stopping_patience=2)],
         )
+        if "processing_class" in inspect.signature(Trainer.__init__).parameters:
+            trainer_kwargs["processing_class"] = tokenizer
+        else:
+            trainer_kwargs["tokenizer"] = tokenizer
+        trainer = Trainer(**trainer_kwargs)
 
         start = time.perf_counter()
         trainer.train()
@@ -210,6 +230,9 @@ def evaluate(args) -> None:
                 }
             )
 
+        if not args.keep_checkpoints:
+            shutil.rmtree(fold_dir, ignore_errors=True)
+
     metrics_frame = pd.DataFrame(fold_rows)
     predictions_frame = pd.DataFrame(prediction_rows)
     summary = summarize_folds(metrics_frame).reset_index(names="metric")
@@ -222,6 +245,7 @@ def evaluate(args) -> None:
         {
             "data": str(args.data),
             "output_dir": str(args.output_dir),
+            "checkpoint_dir": str(checkpoint_root),
             "resolved_checkpoint": checkpoint,
             "unique_examples": len(frame),
             "context_groups": int(frame["context"].nunique()),
@@ -258,6 +282,16 @@ def parse_args():
     parser.add_argument("--weight-decay", type=float, default=0.01)
     parser.add_argument("--max-length", type=int, default=256)
     parser.add_argument("--seed", type=int, default=42)
+    parser.add_argument(
+        "--checkpoint-dir",
+        type=Path,
+        help="Temporary local checkpoint directory (defaults to the system temp folder)",
+    )
+    parser.add_argument(
+        "--keep-checkpoints",
+        action="store_true",
+        help="Keep per-fold checkpoints after predictions are saved",
+    )
     return parser.parse_args()
 
 
