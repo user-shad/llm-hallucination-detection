@@ -95,13 +95,27 @@ Training took 336.796 seconds and inference took 0.883 seconds. RoBERTa correctl
 
 RoBERTa was much more stable than BERT. Its weighted F1 slightly exceeded word overlap, although both produced the same overall accuracy. RoBERTa still underperformed the pretrained NLI checkpoint, supporting the value of task-relevant NLI pretraining.
 
+## EXP-005 — Fine-tuned DeBERTa-v3
+
+DeBERTa-v3 was fine-tuned using the same context-response inputs and grouped protocol as BERT and RoBERTa.
+
+| Accuracy | Weighted F1 | Macro F1 | Hallucinated precision | Hallucinated recall | Hallucinated F1 |
+| ---: | ---: | ---: | ---: | ---: | ---: |
+| 0.938 | 0.937 ± 0.070 | 0.937 ± 0.070 | 1.000 | 0.875 | 0.929 |
+
+Training took 793.098 seconds (about 13 minutes 13 seconds) and inference took 1.229 seconds. DeBERTa-v3 correctly classified 180 of 192 examples, with no false alarms on faithful responses. It missed 12 hallucinations: eight factual errors and four date errors.
+
+### Interpretation
+
+DeBERTa-v3 was the strongest fine-tuned model. Its weighted F1 exceeded RoBERTa by 0.045 and BERT by 0.198, and its fold scores ranged from 0.873 to 1.000. It still underperformed the pretrained NLI checkpoint, which reinforces the value of task-relevant NLI pretraining on this evidence-response task.
+
 ## Planned transformer results
 
 | Experiment | Model | Status |
 | --- | --- | --- |
 | EXP-003 | BERT pair classifier | Complete: weighted F1 0.739 ± 0.209 |
 | EXP-004 | RoBERTa pair classifier | Complete: weighted F1 0.892 ± 0.100 |
-| EXP-005 | Fine-tuned DeBERTa-v3 | Runner ready; training pending |
+| EXP-005 | Fine-tuned DeBERTa-v3 | Complete: weighted F1 0.937 ± 0.070 |
 | EXP-006 | SciBERT pair classifier | Runner ready; training pending |
 
 Example:
