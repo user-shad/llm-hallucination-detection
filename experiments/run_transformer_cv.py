@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import inspect
 import json
 import sys
 import time
@@ -136,14 +137,13 @@ def evaluate(args) -> None:
             label2id=LABEL_TO_ID,
         )
         fold_dir = args.output_dir / f"fold_{fold}"
-        training_args = TrainingArguments(
+        training_kwargs = dict(
             output_dir=str(fold_dir),
             learning_rate=args.learning_rate,
             per_device_train_batch_size=args.batch_size,
             per_device_eval_batch_size=args.batch_size,
             num_train_epochs=args.epochs,
             weight_decay=args.weight_decay,
-            evaluation_strategy="epoch",
             save_strategy="epoch",
             logging_strategy="epoch",
             load_best_model_at_end=True,
@@ -154,16 +154,28 @@ def evaluate(args) -> None:
             seed=args.seed,
             data_seed=args.seed,
         )
-        trainer = Trainer(
+        strategy_parameter = (
+            "eval_strategy"
+            if "eval_strategy" in inspect.signature(TrainingArguments.__init__).parameters
+            else "evaluation_strategy"
+        )
+        training_kwargs[strategy_parameter] = "epoch"
+        training_args = TrainingArguments(**training_kwargs)
+
+        trainer_kwargs = dict(
             model=model,
             args=training_args,
             train_dataset=train_data,
             eval_dataset=validation_data,
-            tokenizer=tokenizer,
             data_collator=collator,
             compute_metrics=trainer_metrics,
             callbacks=[EarlyStoppingCallback(early_stopping_patience=2)],
         )
+        if "processing_class" in inspect.signature(Trainer.__init__).parameters:
+            trainer_kwargs["processing_class"] = tokenizer
+        else:
+            trainer_kwargs["tokenizer"] = tokenizer
+        trainer = Trainer(**trainer_kwargs)
 
         start = time.perf_counter()
         trainer.train()
