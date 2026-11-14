@@ -81,12 +81,26 @@ BERT learned more than the TF-IDF models but performed worse than word overlap a
 
 This lower score is still useful: it supports the literature's emphasis on NLI-pretrained encoders and demonstrates why results should be reported across grouped folds rather than from one favorable random split.
 
+## EXP-004 — Fine-tuned RoBERTa
+
+RoBERTa was fine-tuned using the same context-response inputs and grouped folds as BERT.
+
+| Accuracy | Weighted F1 | Macro F1 | Hallucinated precision | Hallucinated recall | Hallucinated F1 |
+| ---: | ---: | ---: | ---: | ---: | ---: |
+| 0.896 | 0.892 ± 0.100 | 0.892 ± 0.100 | 1.000 | 0.792 | 0.873 |
+
+Training took 336.796 seconds and inference took 0.883 seconds. RoBERTa correctly classified 172 of 192 examples, with no false alarms on faithful responses. It missed 20 hallucinations: eight date errors, eight factual errors, and four contradictions.
+
+### Interpretation
+
+RoBERTa was much more stable than BERT. Its weighted F1 slightly exceeded word overlap, although both produced the same overall accuracy. RoBERTa still underperformed the pretrained NLI checkpoint, supporting the value of task-relevant NLI pretraining.
+
 ## Planned transformer results
 
 | Experiment | Model | Status |
 | --- | --- | --- |
 | EXP-003 | BERT pair classifier | Complete: weighted F1 0.739 ± 0.209 |
-| EXP-004 | RoBERTa pair classifier | Runner ready; training pending |
+| EXP-004 | RoBERTa pair classifier | Complete: weighted F1 0.892 ± 0.100 |
 | EXP-005 | Fine-tuned DeBERTa-v3 | Runner ready; training pending |
 | EXP-006 | SciBERT pair classifier | Runner ready; training pending |
 
