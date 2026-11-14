@@ -63,11 +63,29 @@ This result supports the paper-guided NLI approach. It also shows that the curre
 python experiments/run_nli_baseline.py --output-dir outputs/nli_baseline
 ```
 
+## EXP-003 — Fine-tuned BERT
+
+BERT was fine-tuned as an evidence-response pair classifier using the same six grouped folds.
+
+| Accuracy | Weighted F1 | Macro F1 | Hallucinated precision | Hallucinated recall | Hallucinated F1 |
+| ---: | ---: | ---: | ---: | ---: | ---: |
+| 0.771 | 0.739 ± 0.209 | 0.739 ± 0.209 | 0.792 | 0.583 | 0.665 |
+
+Training all six folds took 335.403 seconds and inference took 0.724 seconds. BERT correctly classified 148 of 192 examples.
+
+Performance was unstable across contexts. Five folds scored weighted F1 between 0.733 and 0.873, while fold 3 scored 0.333 and classified all hallucinations as faithful.
+
+### Interpretation
+
+BERT learned more than the TF-IDF models but performed worse than word overlap and the pretrained NLI checkpoint. The low hallucination recall and large fold standard deviation suggest that 24 contexts are insufficient for stable fine-tuning from a general BERT checkpoint.
+
+This lower score is still useful: it supports the literature's emphasis on NLI-pretrained encoders and demonstrates why results should be reported across grouped folds rather than from one favorable random split.
+
 ## Planned transformer results
 
 | Experiment | Model | Status |
 | --- | --- | --- |
-| EXP-003 | BERT pair classifier | Runner ready; training pending |
+| EXP-003 | BERT pair classifier | Complete: weighted F1 0.739 ± 0.209 |
 | EXP-004 | RoBERTa pair classifier | Runner ready; training pending |
 | EXP-005 | Fine-tuned DeBERTa-v3 | Runner ready; training pending |
 | EXP-006 | SciBERT pair classifier | Runner ready; training pending |
