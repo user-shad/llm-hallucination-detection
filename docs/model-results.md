@@ -41,14 +41,36 @@ python experiments/run_classical_baselines.py \
 
 The command writes fold metrics, out-of-fold predictions, an aggregate summary, and a run configuration. The generated `outputs/` directory is intentionally excluded from Git.
 
+## EXP-002 — Pretrained DeBERTa-v3 NLI
+
+The pretrained `MoritzLaurer/DeBERTa-v3-base-mnli-fever-anli` checkpoint was evaluated without project-specific training. Context was the NLI premise and response was the hypothesis.
+
+| Accuracy | Weighted F1 | Macro F1 | Correct examples | Inference time |
+| ---: | ---: | ---: | ---: | ---: |
+| 1.000 | 1.000 ± 0.000 | 1.000 ± 0.000 | 192/192 | 1.379 seconds |
+
+All six context groups scored 1.000. Faithful examples had entailment probabilities between 0.680 and 0.998, while hallucinated examples ranged from 0.00006 to 0.398.
+
+The binary decision rule combines contradiction and neutral as hallucinated: entailment probability at least 0.5 is faithful; anything below 0.5 is hallucinated.
+
+### Interpretation
+
+This result supports the paper-guided NLI approach. It also shows that the current synthetic dataset is easy for a strong pretrained NLI checkpoint. The perfect score must not be described as perfect real-world hallucination detection. A second, independently collected dataset is needed to test generalization.
+
+### Reproduction
+
+```bash
+python experiments/run_nli_baseline.py --output-dir outputs/nli_baseline
+```
+
 ## Planned transformer results
 
 | Experiment | Model | Status |
 | --- | --- | --- |
-| EXP-002 | BERT pair classifier | Runner ready; training pending |
-| EXP-003 | RoBERTa pair classifier | Runner ready; training pending |
-| EXP-004 | DeBERTa-v3 NLI | Runner ready; training pending |
-| EXP-005 | SciBERT pair classifier | Runner ready; training pending |
+| EXP-003 | BERT pair classifier | Runner ready; training pending |
+| EXP-004 | RoBERTa pair classifier | Runner ready; training pending |
+| EXP-005 | Fine-tuned DeBERTa-v3 | Runner ready; training pending |
+| EXP-006 | SciBERT pair classifier | Runner ready; training pending |
 
 Example:
 

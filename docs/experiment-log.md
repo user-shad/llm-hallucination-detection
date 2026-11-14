@@ -7,10 +7,11 @@ Record every completed, failed, or abandoned experiment. Do not delete an entry 
 | ID | Date | Model | Input | Evaluation | Status | Weighted F1 | Notes |
 | --- | --- | --- | --- | --- | --- | ---: | --- |
 | EXP-001 | 14 Nov 2026 | Classical baselines | context + response | 6-fold grouped CV | Complete | 0.885 best | Word overlap was strongest |
-| EXP-002 | TBD | BERT | context + response | 6-fold grouped CV | Planned | — | Pair classification |
-| EXP-003 | TBD | RoBERTa | context + response | 6-fold grouped CV | Planned | — | Pair classification |
-| EXP-004 | TBD | DeBERTa-v3 NLI | context + response | 6-fold grouped CV | Planned | — | Zero-shot, then fine-tuned |
-| EXP-005 | TBD | SciBERT | context + response | 6-fold grouped CV | Planned | — | Domain-specific comparison |
+| EXP-002 | 14 Nov 2026 | Pretrained DeBERTa-v3 NLI | context + response | 6-fold grouped reporting | Complete | 1.000 | No project-specific training |
+| EXP-003 | TBD | BERT | context + response | 6-fold grouped CV | Planned | — | Pair classification |
+| EXP-004 | TBD | RoBERTa | context + response | 6-fold grouped CV | Planned | — | Pair classification |
+| EXP-005 | TBD | DeBERTa-v3 | context + response | 6-fold grouped CV | Planned | — | Fine-tuned pair classifier |
+| EXP-006 | TBD | SciBERT | context + response | 6-fold grouped CV | Planned | — | Domain-specific comparison |
 
 ## EXP-001 — Classical baselines
 
@@ -33,6 +34,31 @@ Record every completed, failed, or abandoned experiment. Do not delete an entry 
 - **Interpretation:** lexical overlap is a strong synthetic-data baseline, but the large fold variation and substitution errors justify testing NLI pair encoders
 - **Limitations:** only 24 synthetic contexts; no claim of real-world performance
 - **Decision and next step:** run the pretrained NLI baseline, then BERT, RoBERTa, DeBERTa-v3, and SciBERT with the same folds
+
+## EXP-002 — Pretrained DeBERTa-v3 NLI
+
+- **Date:** 14 November 2026
+- **Research question:** Can a pretrained NLI model detect unsupported or contradictory responses without training on this project dataset?
+- **Hypothesis:** An NLI model will outperform word overlap because it compares the evidence and claim relationship.
+- **Unique examples:** 192
+- **Context groups:** 24
+- **Input condition:** context as premise and response as hypothesis
+- **Model/checkpoint:** `MoritzLaurer/DeBERTa-v3-base-mnli-fever-anli`
+- **Training:** none; pretrained zero-shot inference
+- **Fold definition:** predictions reported in the same six context groups used by other experiments
+- **Batch size:** 8
+- **Maximum length:** 256 tokens
+- **Inference time:** 1.379 seconds on the Colab run
+- **Decision rule:** entailment probability at least 0.5 means faithful; otherwise hallucinated
+- **Weighted F1, mean ± standard deviation:** 1.000 ± 0.000
+- **Macro F1, mean ± standard deviation:** 1.000 ± 0.000
+- **Accuracy:** 1.000
+- **Correct predictions:** 192 of 192
+- **Probability separation:** faithful entailment probabilities ranged from 0.680 to 0.998; hallucinated examples ranged from 0.00006 to 0.398
+- **Main errors:** none on this dataset
+- **Interpretation:** the pretrained NLI formulation fits the simple evidence-response relationships in this synthetic dataset much better than the lexical baselines
+- **Limitations:** a perfect result on 24 synthetic contexts is strong evidence that the benchmark is easy for this checkpoint, not evidence of perfect real-world hallucination detection
+- **Decision and next step:** run BERT and RoBERTa under grouped fine-tuning, then test generalization on a second dataset
 
 ## Entry template
 
