@@ -10,7 +10,7 @@ Record every completed, failed, or abandoned experiment. Do not delete an entry 
 | EXP-002 | 14 Nov 2026 | Pretrained DeBERTa-v3 NLI | context + response | 6-fold grouped reporting | Complete | 1.000 | No project-specific training |
 | EXP-003 | 14 Nov 2026 | BERT | context + response | 6-fold grouped CV | Complete | 0.739 | High fold variation |
 | EXP-004 | 14 Nov 2026 | RoBERTa | context + response | 6-fold grouped CV | Complete | 0.892 | Zero false alarms |
-| EXP-005 | TBD | DeBERTa-v3 | context + response | 6-fold grouped CV | Planned | — | Fine-tuned pair classifier |
+| EXP-005 | 14 Nov 2026 | DeBERTa-v3 | context + response | 6-fold grouped CV | Complete | 0.937 | Strongest fine-tuned model |
 | EXP-006 | TBD | SciBERT | context + response | 6-fold grouped CV | Planned | — | Domain-specific comparison |
 
 ## EXP-001 — Classical baselines
@@ -111,6 +111,32 @@ Record every completed, failed, or abandoned experiment. Do not delete an entry 
 - **Interpretation:** RoBERTa was substantially more stable than BERT and slightly exceeded word overlap in weighted F1, but pretrained NLI remained clearly strongest
 - **Limitations:** one seed, 24 synthetic contexts, and no external test dataset
 - **Decision and next step:** run fine-tuned DeBERTa-v3 and SciBERT, then evaluate the strongest approaches on a second dataset
+
+## EXP-005 — Fine-tuned DeBERTa-v3
+
+- **Date:** 14 November 2026
+- **Research question:** Does fine-tuned DeBERTa-v3 provide better evidence-response reasoning than BERT and RoBERTa?
+- **Hypothesis:** DeBERTa-v3's stronger representations will improve hallucination recall and fold stability.
+- **Unique examples:** 192
+- **Context groups:** 24
+- **Input condition:** context + response
+- **Model/checkpoint:** `microsoft/deberta-v3-base`
+- **Fold definition:** six-fold GroupKFold by context, with grouped validation inside each training fold
+- **Train/validation/test per fold:** 128 / 32 / 32 examples
+- **Hyperparameters:** learning rate 2e-5, batch size 8, maximum 5 epochs, weight decay 0.01, maximum length 256, seed 42
+- **Total training time:** 793.098 seconds (about 13 minutes 13 seconds)
+- **Total inference time:** 1.229 seconds
+- **Weighted F1, mean ± standard deviation:** 0.937 ± 0.070
+- **Macro F1, mean ± standard deviation:** 0.937 ± 0.070
+- **Accuracy:** 0.938
+- **Hallucinated precision/recall/F1:** 1.000 / 0.875 / 0.929
+- **Faithful precision/recall/F1:** 0.900 / 1.000 / 0.944
+- **Aggregate confusion counts:** 96 faithful correct, 0 faithful false alarms, 84 hallucinations detected, 12 hallucinations missed
+- **Main errors:** factual errors (8) and date errors (4)
+- **Fold stability:** weighted F1 ranged from 0.873 to 1.000; the final three folds scored 1.000
+- **Interpretation:** DeBERTa-v3 was the strongest fine-tuned classifier, but the pretrained NLI checkpoint remained best; this suggests that task-relevant NLI pretraining is more valuable here than fine-tuning a general encoder on 192 examples.
+- **Limitations:** one seed, 24 synthetic contexts, and no external test dataset
+- **Decision and next step:** run SciBERT under the same protocol, then evaluate the strongest approaches on a second dataset
 
 ## Entry template
 
