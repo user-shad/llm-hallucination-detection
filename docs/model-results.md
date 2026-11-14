@@ -109,14 +109,14 @@ Training took 793.098 seconds (about 13 minutes 13 seconds) and inference took 1
 
 DeBERTa-v3 was the strongest fine-tuned model. Its weighted F1 exceeded RoBERTa by 0.045 and BERT by 0.198, and its fold scores ranged from 0.873 to 1.000. It still underperformed the pretrained NLI checkpoint, which reinforces the value of task-relevant NLI pretraining on this evidence-response task.
 
-## Planned transformer results
+## Transformer experiment status
 
 | Experiment | Model | Status |
 | --- | --- | --- |
 | EXP-003 | BERT pair classifier | Complete: weighted F1 0.739 ± 0.209 |
 | EXP-004 | RoBERTa pair classifier | Complete: weighted F1 0.892 ± 0.100 |
 | EXP-005 | Fine-tuned DeBERTa-v3 | Complete: weighted F1 0.937 ± 0.070 |
-| EXP-006 | SciBERT pair classifier | Runner ready; training pending |
+| EXP-006 | SciBERT pair classifier | Not pursued due to available project time |
 
 Example:
 
@@ -126,4 +126,4 @@ python experiments/run_transformer_cv.py \
   --output-dir outputs/deberta
 ```
 
-Transformer scores will be added only after all six context-grouped folds finish successfully.
+The four selected transformer approaches completed the planned comparison. SciBERT was not run because the existing models already provide the needed architectural comparison and the remaining project time is reserved for analysis and reporting. Evaluation on an independent dataset is recorded as future work rather than presented as a completed result.

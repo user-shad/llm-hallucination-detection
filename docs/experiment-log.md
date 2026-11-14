@@ -11,7 +11,7 @@ Record every completed, failed, or abandoned experiment. Do not delete an entry 
 | EXP-003 | 14 Nov 2026 | BERT | context + response | 6-fold grouped CV | Complete | 0.739 | High fold variation |
 | EXP-004 | 14 Nov 2026 | RoBERTa | context + response | 6-fold grouped CV | Complete | 0.892 | Zero false alarms |
 | EXP-005 | 14 Nov 2026 | DeBERTa-v3 | context + response | 6-fold grouped CV | Complete | 0.937 | Strongest fine-tuned model |
-| EXP-006 | TBD | SciBERT | context + response | 6-fold grouped CV | Planned | — | Domain-specific comparison |
+| EXP-006 | 14 Nov 2026 | SciBERT | context + response | 6-fold grouped CV | Not pursued | — | Excluded due to available project time |
 
 ## EXP-001 — Classical baselines
 
@@ -110,7 +110,7 @@ Record every completed, failed, or abandoned experiment. Do not delete an entry 
 - **Fold stability:** weighted F1 ranged from 0.733 to 1.000; two folds scored 1.000
 - **Interpretation:** RoBERTa was substantially more stable than BERT and slightly exceeded word overlap in weighted F1, but pretrained NLI remained clearly strongest
 - **Limitations:** one seed, 24 synthetic contexts, and no external test dataset
-- **Decision and next step:** run fine-tuned DeBERTa-v3 and SciBERT, then evaluate the strongest approaches on a second dataset
+- **Decision and next step:** run fine-tuned DeBERTa-v3; SciBERT and external-dataset validation were later left as future work because of the available project time
 
 ## EXP-005 — Fine-tuned DeBERTa-v3
 
@@ -136,7 +136,7 @@ Record every completed, failed, or abandoned experiment. Do not delete an entry 
 - **Fold stability:** weighted F1 ranged from 0.873 to 1.000; the final three folds scored 1.000
 - **Interpretation:** DeBERTa-v3 was the strongest fine-tuned classifier, but the pretrained NLI checkpoint remained best; this suggests that task-relevant NLI pretraining is more valuable here than fine-tuning a general encoder on 192 examples.
 - **Limitations:** one seed, 24 synthetic contexts, and no external test dataset
-- **Decision and next step:** run SciBERT under the same protocol, then evaluate the strongest approaches on a second dataset
+- **Decision and next step:** stop model training and complete the comparison, error analysis, limitations, and final report
 
 ## Entry template
 
