@@ -3,39 +3,74 @@
 COSC 497 Senior Design Project I
 
 ## Team
+
 - Shahad Aljasmi
 - Wadha Msaiqer
 - Mouza Alshehhi
 - Maram Alkatheeri
 
 ## Supervisor
+
 Dr. U Zeyar Aung, Computer Science, Khalifa University
 
 ## Project
-Build a detector that reads a prompt, a context passage, and an AI answer, then decides whether the answer is faithful or hallucinated.
+
+This project evaluates whether an AI-generated response is faithful to a supplied context or contains a hallucination. It compares classical baselines, fine-tuned transformer classifiers, and a pretrained natural-language-inference model.
+
+## Dataset and evaluation
+
+Although the source dataset contains 5,000 rows, exact deduplication leaves 192 unique examples across 24 contexts. The project therefore uses six-fold grouped cross-validation so that each test context is unseen during training.
+
+| Main approach | Accuracy | Weighted F1 |
+| --- | ---: | ---: |
+| Pretrained DeBERTa-v3 NLI | 1.000 | 1.000 ± 0.000 |
+| Fine-tuned DeBERTa-v3 | 0.938 | 0.937 ± 0.070 |
+| Fine-tuned RoBERTa | 0.896 | 0.892 ± 0.100 |
+| Fine-tuned BERT | 0.771 | 0.739 ± 0.209 |
+
+The perfect NLI result applies only to this small synthetic dataset and must not be interpreted as perfect real-world hallucination detection.
 
 ## Setup
 
-From this folder:
+Install the dependencies:
 
-pip install pandas scikit-learn torch transformers notebook
+```bash
+pip install -r requirements.txt
+```
 
-PyTorch on this project was installed from the CPU build:
+The dataset is stored at `data/llm_hallucination_detection_dataset.jsonl`.
 
-pip install torch --index-url https://download.pytorch.org/whl/cpu
+## Run experiments
 
-The dataset is already in data/llm_hallucination_detection_dataset.jsonl.
+Classical baselines:
 
-## Run
+```bash
+python experiments/run_classical_baselines.py --output-dir outputs/classical
+```
 
-baseline.ipynb is the word check and the two logistic regression models. It uses the context column.
+Pretrained NLI:
 
-bert_roberta.ipynb trains BERT and RoBERTa. One part uses the context. The later part uses only the question and the answer.
+```bash
+python experiments/run_nli_baseline.py --output-dir outputs/nli_baseline
+```
 
-Open either notebook from this folder with:
+Fine-tuned transformers:
 
-python -m jupyter notebook
+```bash
+python experiments/run_transformer_cv.py --model bert --output-dir outputs/bert
+python experiments/run_transformer_cv.py --model roberta --output-dir outputs/roberta
+python experiments/run_transformer_cv.py --model deberta --output-dir outputs/deberta
+```
 
-Run the cells from the top. The first data cell should print 153 39.
+For Google Colab GPU runs, use `experiments/colab_transformer_experiments.ipynb`. Generated outputs and downloaded model weights are excluded from Git.
 
-Do not commit the outputs folder or the downloaded model weights. Those are created during training and are not part of the project record.
+## Documentation
+
+- [Final model analysis](docs/final-analysis.md)
+- [Detailed model results](docs/model-results.md)
+- [Experiment log](docs/experiment-log.md)
+- [Evaluation protocol](docs/experimental-protocol.md)
+- [Paper comparison matrix](docs/paper-matrix.md)
+- [Experiment instructions](docs/running-experiments.md)
+
+SciBERT and validation on an independent dataset are recorded as future work because of the available project time.
